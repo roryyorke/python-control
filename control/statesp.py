@@ -292,6 +292,68 @@ class StateSpace(LTI):
             C=asarray(self.C).__repr__(), D=asarray(self.D).__repr__(),
             dt=(isdtime(self, strict=True) and ", {}".format(self.dt)) or '')
 
+    def _repr_latex_(self):
+        """LaTeX representation of state-space model
+
+        Model is presented as a matrix partitioned into A, B, C, and D
+        parts.  The output is primarily intended for Jupyter
+        notebooks, which use MathJax to render the LaTeX, and the
+        results may look odd when processed by a 'conventional' LaTeX
+        system.
+
+        Returns
+        -------
+        s : string with LaTeX representation of model
+        """
+
+        def _f2s(f):
+            """Format floating point number f as a string
+
+            Inserts column separators, etc., for _repr_latex_.
+            """
+            prec = 3
+            sraw = '{f:-.{prec}g}'.format(f=f, prec=prec)
+            # significand-exponent
+            se = sraw.split('e')
+            # whole-fraction
+            wf = se[0].split('.')
+            s = wf[0]
+            if wf[1:]:
+                s += r'.&\hspace{{-1em}}{frac}'.format(frac=wf[1])
+            else:
+                s += r'\phantom{.}&\hspace{-1em}'
+
+            if se[1:]:
+                s += r'&\hspace{{-1em}}\cdot10^{{{:d}}}'.format(int(se[1]))
+            else:
+                s += r'&\hspace{-1em}\phantom{\cdot}'
+
+            return s
+
+        lines = [
+            r'\[',
+            r'\left(',
+            (r'\begin{array}'
+             + r'{' + 'rll' * self.states + '|' + 'rll' * self.inputs + '}')
+            ]
+
+        for Ai, Bi in zip(asarray(self.A), asarray(self.B)):
+            lines.append('&'.join([_f2s(Aij) for Aij in Ai]
+                                  + [_f2s(Bij) for Bij in Bi])
+                         + '\\\\')
+        lines.append(r'\hline')
+        for Ci, Di in zip(asarray(self.C), asarray(self.D)):
+            lines.append('&'.join([_f2s(Cij) for Cij in Ci]
+                                  + [_f2s(Dij) for Dij in Di])
+                         + '\\\\')
+
+        lines.extend([
+            r'\end{array}'
+            r'\right)',
+            r'\]'])
+
+        return '\n'.join(lines)
+
     # Negation of a system
     def __neg__(self):
         """Negate a state space system."""
