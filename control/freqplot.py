@@ -484,11 +484,8 @@ def bode_plot(syslist, omega=None,
                     v2 = np.floor(val_max / period + 0.2)
                     return np.arange(v1, v2 + 1) * period
                 if deg:
-                    ylim = ax_phase.get_ylim()
-                    ax_phase.set_yticks(gen_zero_centered_series(
-                        ylim[0], ylim[1], 45.))
-                    ax_phase.set_yticks(gen_zero_centered_series(
-                        ylim[0], ylim[1], 15.), minor=True)
+                    _y180_locator(ax_phase)
+                    ax_phase.callbacks.connect('ylim_changed', _y180_locator)
                 else:
                     ylim = ax_phase.get_ylim()
                     ax_phase.set_yticks(gen_zero_centered_series(
@@ -1438,6 +1435,35 @@ def gen_prefix(pow1000):
 def find_nearest_omega(omega_list, omega):
     omega_list = np.asarray(omega_list)
     return omega_list[(np.abs(omega_list - omega)).argmin()]
+
+
+def _y180_locator(ax):
+    """Set yaxis locator for divisors and multiples of 180
+
+    Intended for degree phase plots
+
+    Suitable as callback for ``'ylim_changed'`` Axes event.
+
+    Parameters
+    ----------
+    axes: matplotlib.axes.Axes
+      axes to change y-axis major locator for
+    """
+    # aim for 5 divisions; too few?
+    spacing = abs(np.diff(ax.get_ylim())) / 5
+
+    if spacing <= 11.25:
+        # quite small: just use default
+        ax.yaxis.set_major_locator(plt.MaxNLocator())
+    elif spacing <= 180:
+        # spacing between 11.25 and 180: use a power-of-2 divisor of 180
+        # (180 = 11.25 * 16)
+        multiple = 180 / (2 ** np.round(np.log2(180 / spacing)))
+        ax.yaxis.set_major_locator(plt.MultipleLocator(multiple))
+    else:
+        # large spacing: use integer multiple of 180
+        multiple = 180 * np.round(spacing/180)
+        ax.yaxis.set_major_locator(plt.MultipleLocator(multiple))
 
 
 # Function aliases
