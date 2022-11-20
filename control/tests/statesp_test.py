@@ -365,7 +365,7 @@ class TestStateSpace:
 
         # Deprecated name of the call (should generate error)
         with pytest.raises(AttributeError):
-            sys.evalfr(omega)
+            sys.evalfr(omega) # pylint: disable=no-member
 
 
     @slycotonly
