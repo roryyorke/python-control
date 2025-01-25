@@ -8,6 +8,8 @@ jobs:
   pyflakes-linux:
     # pyflakes shouldn't be sensitive to platform
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
 
     steps:
     - name: Checkout python-control
