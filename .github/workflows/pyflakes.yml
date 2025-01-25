@@ -8,8 +8,6 @@ jobs:
   pyflakes-linux:
     # pyflakes shouldn't be sensitive to platform
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
 
     steps:
     - name: Checkout python-control
@@ -26,13 +24,17 @@ jobs:
         python -m pip install pyflakes
 
     - name: Run pyflakes on control library
+      id: mainlib
       run: |
         pyflakes control
 
     - name: Run pyflakes on examples
+      if: success() || steps.mainlib.conclusion == 'failure'
+      id: examples
       run: |
         pyflakes examples
 
     - name: Run pyflakes on benchmarks
+      if: success() || steps.examples.conclusion == 'failure'
       run: |
         pyflakes benchmarks
