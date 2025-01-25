@@ -1,0 +1,35 @@
+# pyflakes on source, examples, and benchmarks
+
+name: Doctest
+
+on: [push, pull_request]
+
+jobs:
+  pyflakes-linux:
+    # pyflakes shouldn't be sensitive to platform
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout python-control
+      uses: actions/checkout@v3
+
+    - name: Setup environment
+      uses: actions/setup-python@v4
+        python-version: 3.13 # todo: latest?
+
+    - name: Install pyflakes
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pyflakes
+
+    - name: Run pyflakes on control library
+      run: |
+        pyflakes control
+
+    - name: Run pyflakes on examples
+      run: |
+        pyflakes examples
+
+    - name: Run pyflakes on benchmarks
+      run: |
+        pyflakes benchmarks
