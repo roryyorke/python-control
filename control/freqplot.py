@@ -1446,6 +1446,12 @@ def nyquist_response(
         else:
             contour = np.exp(splane_contour * sys.dt)
 
+        # Make sure we don't try to evaluate at a pole
+        if isinstance(sys, (StateSpace, TransferFunction)):
+            if any([pole in contour for pole in sys.poles()]):
+                raise RuntimeError(
+                    "attempt to evaluate at a pole; indent required")
+
         # Compute the primary curve
         resp = sys(contour)
 
